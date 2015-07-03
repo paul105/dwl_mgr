@@ -82,14 +82,17 @@ class Ui_new_dl(QtGui.QMainWindow):
         self.ww = UI_dl(self.n)
         self.ww.setGeometry(QtCore.QRect(500,500,400,300))
         self.ww.show()
-        self.supervi()
+        from super import supervi
+        supervi(self.n, self.__url,self.path, self.ww)
 
-
+'''
     def supervi(self):
         import os
         import urllib2
         import multiprocessing as mp
         from main import dziecko, del_and_combine
+        from super import cos
+        cos(self)
         N = self.n
         url = self.__url
         dir = self.path
@@ -141,12 +144,14 @@ class Ui_new_dl(QtGui.QMainWindow):
                 p.join()
                 self.ww.end.setEnabled(True)
                 for n in range(0,N):
-                    self.ww.tabelka[n].setText(str(int(s/data_block *100))+"%")
+                    pass
+                    #self.ww.tabelka[n].setText(str(int(s/data_block *100))+"%")
                 del_and_combine(dir,dir_tmp,f_name,N)
                 break
             for n in range(0,N):
-                self.ww.tabelka[n].setText(str(int(s/data_block *100))+"%")
-
+                pass
+                #self.ww.tabelka[n].setText(str(int(s/data_block *100))+"%")
+'''
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, *args):
