@@ -11,6 +11,7 @@ def main(self):
     global app
     app = test2.App(self)
     app.exec_()
+    #cos
 
 
 
