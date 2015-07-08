@@ -4,15 +4,12 @@ import multiprocessing as mp
 import os
 import time
 import sys
-import PyQt4
 import test2
 
 def main(self):
     global app
     app = test2.App(self)
     app.exec_()
-    #cos
-
 
 
 def dziecko(i, req, dir):               #funkcja dziecko, przekazujemy "id", "Request object", oraz katalog roboczy
