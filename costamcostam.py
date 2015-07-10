@@ -1,95 +1,88 @@
-__author__ = 'p'
-import urllib2 as u
-import re
-
-url = "http://127.0.0.1/gf.exe"
-data = u.urlopen(url)
-#print data.headers
-if data.headers["Accept-Ranges"] == "bytes":
-    if data.headers["Content-Length"]:
-        print "cos"
-
-
-
-'''
-def funkcja():
-    url = "htp://127.0.0.1/gf.exe"
-    k = 1
-    try:
-        u.urlopen(url)
-        return url
-    except:
-        try:
-            url2 = "http://" + url
-            u.urlopen(url2)
-            url = url2
-            return url
-        except:
-            try:
-                url3 = "http://" + (url.split("//",1))[1]
-                u.urlopen(url3)
-                print "2"
-                return url3
-            except:
-                try:
-                    url4 = "ftp://" + url
-                    u.urlopen(url4)
-                    return url4
-                except:
-                    k = 0
-
-    finally:
-        pass
-        #return k
-
-#a = funkcja()
-#print a
-
-a=""
-print isinstance(a,int)
-'''
-'''
-if funkcja():
-    print "cos"
-else:
-    print "nic"
-
-#print funkcja()
-czas = []
-for i in range(5):
-    url = "htp://127.0.0.1/gf.exe"
-    import time
-    start = time.time()
-    try:
-        u.urlopen(url)
-    except:
-        try:
-            #url2 = "http://" + url
-            url2 = "http://" + (url.split("//",1))[1]
-            u.urlopen(url2)
-            print "1"
-        except:
-            try:
-                url3 = "http://" + url
-                #url3 = "http://" + (url.split("//",1))[1]
-                u.urlopen(url3)
-                print "2"
-            except:
-                print "3"
-                pass
-    finally:
-        czas.append(time.time()-start)
-suma = 0
-for x in czas:
-    print x
-    suma = suma + x
-print "srednia = ", suma/len(czas)
+from PyQt4 import QtGui, QtCore
+import sys
+###aplikacja
+class App(QtGui.QApplication):
+    def __init__(self, *args):
+        QtGui.QApplication.__init__(self, *args)
+        self.main = MainWindow()
+        self.main.setGeometry(QtCore.QRect(100,100,800,600))
+        self.connect(self, QtCore.SIGNAL("lastWindowClosed()"), self.byebye )
+        self.main.show()
+    def byebye( self ):
+        self.exit(0)
 
 
-try:
-    ur = "cos.cos"
-    a = (ur.split("//",1))
-    #print a[1]
-except:
-    print "nic"
-'''
+###glowne okno
+class MainWindow(QtGui.QMainWindow):
+    def __init__(self, *args):
+        QtGui.QMainWindow.__init__(self, *args)
+        self.cw = QtGui.QWidget(self)
+        self.setWindowTitle("Pobieracz")
+        self.setCentralWidget(self.cw)
+        self.btn1 = QtGui.QPushButton("New", self.cw)
+        self.btn1.setGeometry(QtCore.QRect(10, 10, 100, 60))
+        self.connect(self.btn1,QtCore.SIGNAL("clicked()"), self.updatet)
+        self.tableWidget = QtGui.QTableWidget(self.cw)
+        self.tableWidget.setGeometry(QtCore.QRect(140, 110, 550, 300))
+        self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setColumnCount(4)
+        self.tableWidget.setRowCount(11)
+        #self.tableWidget.setEnabled(False)
+
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setVerticalHeaderItem(0, QtGui.QTableWidgetItem("cos"))
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setVerticalHeaderItem(1, QtGui.QTableWidgetItem("cos2"))
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setVerticalHeaderItem(2, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setVerticalHeaderItem(3, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setVerticalHeaderItem(4, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(0, QtGui.QTableWidgetItem("cos3"))
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(1, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(2, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(3, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(4, item)
+
+    def updatet(self):
+        with open("json_file","rb") as file:
+            x = file.readlines()
+            for i in range(0,10):
+                #for x in file:
+
+                    import json
+                    y = json.loads(x[i])
+                    print y
+                    name = QtGui.QTableWidgetItem(y["name"])
+                    date = QtGui.QTableWidgetItem(y["date"])
+                    size = QtGui.QTableWidgetItem(str(y["size"]))
+                    self.tableWidget.setItem(i, 0, name)
+                    self.tableWidget.setItem(i, 1, size)
+                    self.tableWidget.setItem(i, 2, date)
+
+
+        '''
+        #self.connect(self.btn1, QtCore.SIGNAL("clicked()"), self.new_dl)
+        self.tabelka = QtGui.QTextEdit(self)
+        self.tabelka.setGeometry(QtCore.QRect(200, 100, 400, 400))
+        self.tabelka.setObjectName("tabelka")
+        self.tabelka.setText("Tutaj beda \nsie znajdowaly \ndane wszystkich \npobranych plikow")
+        '''
+
+
+
+def main(self):
+    global app
+    app = App(self)
+    app.exec_()
+
+
+if __name__ == '__main__':
+    #mp.freeze_support()
+    main(sys.argv)
