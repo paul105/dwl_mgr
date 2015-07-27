@@ -21,6 +21,7 @@ def dziecko(i, req, dir):               #funkcja dziecko, przekazujemy "id", "Re
             __time_start = time.time()
             chunk = data.read(CHUNK)    #odczytujemy pobrana jednostke danych i zapisujemy, jak wszystko odczytane ->break
             __time = time.time()-__time_start
+            #print __time
             #print i, " czas: ", __time, " rozm: ", len(chunk)
             if not chunk: break
             output.write(chunk)
@@ -32,7 +33,7 @@ def del_and_combine(dir,dir_tmp,f_name,N):
         for i in range(0, N):
             f_path = dir_tmp + "\\file" + str(i)
             with open(f_path, "rb") as f:
-                shutil.copyfileobj(f, of, 1024 * 1024 * 10)
+                shutil.copyfileobj(f, of, 1024 * 1024)
             os.remove(f_path)
         os.rmdir(dir_tmp)
 

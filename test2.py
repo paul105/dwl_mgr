@@ -68,6 +68,7 @@ class Ui_new_dl(QtGui.QMainWindow):
             parts = int(self.parts.toPlainText())
         except:
             parts = ""
+            parts = 3   ############################################################################################do usuniecia
             #todo alert o braku czesci
         finally:
             return parts
@@ -146,11 +147,37 @@ class UI_dl(QtGui.QMainWindow):
         self.end.setGeometry(QtCore.QRect(250,250,100,30))
         self.end.setEnabled(False)
         self.connect(self.end, QtCore.SIGNAL("clicked()"), self.close)
+        self.tableWidget = QtGui.QTableWidget(self.cw3)
+        self.tableWidget.setGeometry(QtCore.QRect(10, 10, 300, 200))
+        self.tableWidget.horizontalHeader().setVisible(False)
+        self.tableWidget.horizontalHeader().setHighlightSections(True)
+        self.tableWidget.horizontalHeader().setMinimumSectionSize(30)
+        self.tableWidget.horizontalHeader().setSortIndicatorShown(True)
+        self.tableWidget.horizontalHeader().setStretchLastSection(True)
+        self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setColumnCount(1)
+        self.tableWidget.setRowCount(n)
+        item = QtGui.QTableWidgetItem()
+        item.setText("Nowa kolumna")
+        self.tableWidget.setHorizontalHeaderItem(0, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableWidget.setVerticalHeaderItem(0, item)
+        for i in range(0,n):
+            item = QtGui.QTableWidgetItem()
+            item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled)
+            self.tableWidget.setItem(i, 0, item)
+        #for i in range(0,n):
+            #item = QtGui.QTableWidgetItem()
+            #self.tableWidget.setVerticalHeaderItem(i, item)
+            #item = QtGui.QTableWidgetItem()
+            #self.tableWidget.setHorizontalHeaderItem(i, item)
+        '''
         self.tabelka=[]
         for i in range(0,n):
             self.tabelka.append(QtGui.QTextEdit(self))
             self.tabelka[i].setGeometry(QtCore.QRect(50,(50+i*23),100,25))
             self.tabelka[i].setObjectName("tabelka"+str(i))
+        '''
 
 
 
