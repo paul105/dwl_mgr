@@ -47,25 +47,115 @@ class Ui_new_dl(QtGui.QMainWindow):
         self.cw2 = QtGui.QWidget(self)
         self.setWindowTitle("Nowe Pobieranie")
         self.setCentralWidget(self.cw2)
-        self.url = QtGui.QTextEdit(self)
-        self.url.setGeometry(QtCore.QRect(150,100,400,35))
-        self.url.setObjectName("urlik")
-        self.parts = QtGui.QTextEdit(self)
-        self.parts.setGeometry(QtCore.QRect(40,100,40,35))
+
+        self.url = QtGui.QLineEdit(self.cw2)
+        self.url.setGeometry(QtCore.QRect(150,100,400,30))
+        self.url.setObjectName("url_1")
+
+        self.parts = QtGui.QLineEdit(self.cw2)
+        self.parts.setGeometry(QtCore.QRect(40,100,40,30))
+        self.parts.setObjectName("Parts")
+
+        self.urlBox = QtGui.QCheckBox(self.cw2)
+        self.urlBox.setGeometry(QtCore.QRect(50, 170, 70, 17))
+        self.urlBox.setObjectName("urlBox")
+
+        self.url2 = QtGui.QLineEdit(self.cw2)
+        self.url2.setGeometry(QtCore.QRect(150,160,400,30))
+        self.url2.setObjectName("url_2")
+        self.url2.setDisabled(True)
+
+        self.propSlider = QtGui.QSlider(self.cw2)
+        self.propSlider.setGeometry(QtCore.QRect(150, 220, 400, 30))
+        self.propSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.propSlider.setObjectName("Proportion slider")
+        self.propSlider.setDisabled(True)
+        self.propSlider.setValue(50)
+        self.propSlider.setRange(0,100)
+
+        self.propValue = QtGui.QLineEdit(self.cw2)
+        self.propValue.setGeometry(QtCore.QRect(40,220,40,30))
+        self.propValue.setObjectName("Proportion Value")
+        self.propValue.setDisabled(True)
+        self.propValue.setText(str(self.propSlider.value()))
+        self.propValue.setMouseTracking(False)
+        self.propValue.setMaxLength(3)
+
+
         self.__search = QtGui.QPushButton("Przegladaj", self.cw2)
         self.__search.setGeometry(QtCore.QRect(10,10,100,30))
         self.connect(self.__search, QtCore.SIGNAL("clicked()"), self.get_dir)
         self.dodaj = QtGui.QPushButton("Dodaj", self.cw2)
         self.dodaj.setGeometry(QtCore.QRect(400,300,150,70))
-        self.connect(self.dodaj, QtCore.SIGNAL("clicked()"), self.pobieranie)
+        self.connect(self.dodaj, QtCore.SIGNAL("clicked()"), self.download_decide)
 
-    def get_url(self):
-        url = str(self.url.toPlainText())
+        self.connect(self.urlBox, QtCore.SIGNAL("clicked()"), self.undis)
+        self.connect(self.propSlider, QtCore.SIGNAL("valueChanged(int)"), self.slid_ch)
+        self.connect(self.propValue, QtCore.SIGNAL("textEdited(QString)"), self.val_ch)
+
+
+    def val_ch(self):
+        x = self.propValue.text()
+        try:
+            x = int(x)
+        except:
+            x = ""
+            self.propValue.clear()
+        if x == "":
+            self.propValue.setMaxLength(3)
+        if len(str(x)) == 1:
+            if x > 1 and x < 10 :
+                self.propValue.setMaxLength(2)
+            elif x == 0:
+                self.propValue.setMaxLength(1)
+            elif x == 1:
+                self.propValue.setMaxLength(3)
+            else:
+                self.propValue.clear()
+                self.propValue.setMaxLength(3)
+        elif len(str(x)) == 2:
+            if x == 10:
+                self.propValue.setMaxLength(3)
+            elif x > 9 and x < 100:
+                self.propValue.setMaxLength(2)
+            else:
+                self.propValue.clear()
+                self.propValue.setMaxLength(3)
+        elif len(str(x)) == 3:
+            if not x == 100:
+                self.propValue.setText("100")
+                x = 100
+        if not x == "":
+            self.propSlider.setValue(x)
+        else:
+            self.propSlider.setValue(0)
+
+
+    def slid_ch(self):
+        self.propValue.setText(str(self.propSlider.value()))
+
+    def undis(self):
+        if self.urlBox.isChecked():
+            self.url2.setDisabled(False)
+            self.propSlider.setDisabled(False)
+            self.propValue.setDisabled(False)
+        else:
+            self.url2.setDisabled(True)
+            self.propSlider.setDisabled(True)
+            self.propValue.setDisabled(True)
+        return None
+
+    def get_url1(self):
+        url = str(self.url.text())
+        return url
+
+    def get_url2(self):
+        url = str(self.url2.text())
         return url
 
     def get_parts(self):
         try:
-            parts = int(self.parts.toPlainText())
+            parts = int(self.parts.text())
         except:
             parts = ""
             parts = 3   ############################################################################################do usuniecia
@@ -111,9 +201,14 @@ class Ui_new_dl(QtGui.QMainWindow):
                         #alert o zlym adresie url
                         return ""
 
-    def pobieranie(self):
-        url = self.check_url(self.get_url())
-        #print url
+    def download_decide(self):
+        if not self.urlBox.isChecked():
+            self.download1()
+        else:
+            self.download2()
+
+    def download1(self):
+        url1 = self.check_url(self.get_url1())
         n = self.get_parts()
         try:
             if self.dir=="":
@@ -124,17 +219,42 @@ class Ui_new_dl(QtGui.QMainWindow):
                 #todo alert nie wpisano n, lub n jest niepoprawne
                 print "2"
                 pass
-            elif url!="":
+            elif url1!="":
                 self.ww = UI_dl(n)
                 self.ww.setGeometry(QtCore.QRect(500,500,400,300))
                 self.ww.show()
-                from super import supervi
-                supervi(n, url, self.dir, self.ww)
+                from super import supervisor1
+                supervisor1(n, url1, self.dir, self.ww)
             else:
                 pass
         except:
             pass
 
+
+    def download2(self):
+        url2 = self.check_url(self.get_url2())
+        val = int(self.propSlider.value())
+        url1 = self.check_url(self.get_url1())
+        n = self.get_parts()
+        try:
+            if self.dir=="":
+                #todo alert o braku wyboru katalogu
+                print "1"
+                pass
+            elif not isinstance(n,int):
+                #todo alert nie wpisano n, lub n jest niepoprawne
+                print "2"
+                pass
+            elif url1!="" and url2!="":
+                self.ww = UI_dl(n)
+                self.ww.setGeometry(QtCore.QRect(500,500,400,300))
+                self.ww.show()
+                from super2 import supervisor2
+                supervisor2(n, url1, url2, val, self.dir, self.ww)
+            else:
+                pass
+        except:
+            pass
 
 ####okno pobierania
 class UI_dl(QtGui.QMainWindow):
@@ -150,34 +270,21 @@ class UI_dl(QtGui.QMainWindow):
         self.tableWidget = QtGui.QTableWidget(self.cw3)
         self.tableWidget.setGeometry(QtCore.QRect(10, 10, 300, 200))
         self.tableWidget.horizontalHeader().setVisible(False)
+        self.tableWidget.horizontalHeader().setStretchLastSection(True)
+        '''
         self.tableWidget.horizontalHeader().setHighlightSections(True)
         self.tableWidget.horizontalHeader().setMinimumSectionSize(30)
         self.tableWidget.horizontalHeader().setSortIndicatorShown(True)
-        self.tableWidget.horizontalHeader().setStretchLastSection(True)
+
+        '''
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(1)
         self.tableWidget.setRowCount(n)
-        item = QtGui.QTableWidgetItem()
-        item.setText("Nowa kolumna")
-        self.tableWidget.setHorizontalHeaderItem(0, item)
-        item = QtGui.QTableWidgetItem()
-        self.tableWidget.setVerticalHeaderItem(0, item)
+
         for i in range(0,n):
             item = QtGui.QTableWidgetItem()
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled)
             self.tableWidget.setItem(i, 0, item)
-        #for i in range(0,n):
-            #item = QtGui.QTableWidgetItem()
-            #self.tableWidget.setVerticalHeaderItem(i, item)
-            #item = QtGui.QTableWidgetItem()
-            #self.tableWidget.setHorizontalHeaderItem(i, item)
-        '''
-        self.tabelka=[]
-        for i in range(0,n):
-            self.tabelka.append(QtGui.QTextEdit(self))
-            self.tabelka[i].setGeometry(QtCore.QRect(50,(50+i*23),100,25))
-            self.tabelka[i].setObjectName("tabelka"+str(i))
-        '''
 
 
 

@@ -30,6 +30,7 @@ def download1(url, file_size, data_block, N, dir_tmp):
         }
         # ustalenie obiektu Request dla konkretnego procesu
         req = urllib2.Request(url, headers=headers)
+        #print "i = %s, %s - %s, %s" % ( i, start, stop, N)
         p.apply_async(dziecko, [i, req, dir_tmp])
     return p
 
@@ -46,11 +47,11 @@ def download2(url,dir_tmp):
     }
     req = urllib2.Request(url,headers=headers)
 
-    p.apply_async(dziecko, [0,req,dir_tmp,0])
+    p.apply_async(dziecko, [0,req,dir_tmp])
     return p
 
 
-def supervi(*args):
+def supervisor1(*args):
     N = args[0]
     url = args[1]
     dir = args[2]
@@ -91,6 +92,7 @@ def supervi(*args):
         sum = 0
         for n in range(0, N):
             sum = sum + os.path.getsize(dir_tmp + "\\file" + str(n))
+            #print "suma = %.2f, file_size = %.2f" % (sum, file_size)
         if not sum < file_size:
             p.close()
             p.join()
@@ -98,11 +100,14 @@ def supervi(*args):
             ww.end.setEnabled(True)
             for n in range(0,N):
                 s = float(os.path.getsize(dir_tmp + "\\file" + str(n)))
-                ww.tableWidget.setItem(n,0,QtGui.QTableWidgetItem("%.2f/%.2f (100.00%%)" % (data_block/(1024**2), data_block/(1024**2))))
+                item = QtGui.QTableWidgetItem("%.2f/%.2f (100.00%%)" % (data_block/(1024**2), data_block/(1024**2)))
+                item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
+                ww.tableWidget.setItem(n,0,item)
             del_and_combine(dir, dir_tmp, f_name, N)
             break
 
         for n in range(0,N):
             s = float(os.path.getsize(dir_tmp + "\\file" + str(n)))
-            ww.tableWidget.setItem(n,0,QtGui.QTableWidgetItem("%.2f/%.2f (%2.2f%%)" % (s/(1024**2), float(data_block/(1024**2)), ((s*100)/data_block))))
-            #(str(int(s / data_block * 100)) + "%"))
+            item = QtGui.QTableWidgetItem("%.2f/%.2f (%2.2f%%)" % (s/(1024**2), float(data_block/(1024**2)), ((s*100)/data_block)))
+            item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
+            ww.tableWidget.setItem(n,0,item)

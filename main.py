@@ -13,13 +13,16 @@ def main(self):
 
 
 def dziecko(i, req, dir):               #funkcja dziecko, przekazujemy "id", "Request object", oraz katalog roboczy
+
     data = urllib2.urlopen(req)
     CHUNK = 1024*512                #ilosc danych czytana jednorazowo
     f_path = dir+"\\file"+str(i)
+    print "dziecko numer i = %s,\nheaders = %s" % (i,req.headers)
     with open(f_path,"wb") as output:
         while True:
             __time_start = time.time()
             chunk = data.read(CHUNK)    #odczytujemy pobrana jednostke danych i zapisujemy, jak wszystko odczytane ->break
+     #       print "tekst = %s" % chunk
             __time = time.time()-__time_start
             #print __time
             #print i, " czas: ", __time, " rozm: ", len(chunk)
@@ -33,6 +36,7 @@ def del_and_combine(dir,dir_tmp,f_name,N):
         for i in range(0, N):
             f_path = dir_tmp + "\\file" + str(i)
             with open(f_path, "rb") as f:
+                #print "kopiuje plik %s do pliku %s" % (f_path, f_name)
                 shutil.copyfileobj(f, of, 1024 * 1024)
             os.remove(f_path)
         os.rmdir(dir_tmp)
