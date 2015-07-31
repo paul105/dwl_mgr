@@ -5,13 +5,13 @@ import multiprocessing as mp
 from main import dziecko, del_and_combine
 
 def download1(url, file_size1, file_size2, data_block, N1, N2, dir_tmp):
-    #headers = {
+    headers = {
     #    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0",
-    #    "Accept-Encoding": "gzip, deflate, sdch",
+        "Accept-Encoding": "gzip, deflate, sdch",
     #    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     #    "Accept-Language": "pl-PL,pl;q=0.8,en-US;q=0.6,en;q=0.4",
     #    "Connection": "keep-alive",
-    #}
+    }
 
     N = N2-N1
     p = mp.Pool(N)
@@ -21,8 +21,11 @@ def download1(url, file_size1, file_size2, data_block, N1, N2, dir_tmp):
             stop = 0
             if not i == N2-1:
                 stop = (i-N1)*data_block + data_block -1 + file_size1
-                req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
+                headers["Range"]="bytes=" + str(start) + "-" + str(stop)
+                req = urllib2.Request(url, headers=headers)
+                #req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
                 #req.add_header("Range","bytes=" + str(start) + "-" + str(stop))
+
                 print "1: %s - %s" % (start, stop)
                 p.apply_async(dziecko, [i, req, dir_tmp])
                 #del req.headers["Range"]
@@ -30,7 +33,9 @@ def download1(url, file_size1, file_size2, data_block, N1, N2, dir_tmp):
                 stop = file_size2+file_size1
                 #req = urllib2.Request(url, headers=headers)
                 #req.add_header("Range","bytes=" + str(start) + "-" + str(stop))
-                req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
+                #req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
+                headers["Range"]="bytes=" + str(start) + "-" + str(stop)
+                req = urllib2.Request(url, headers=headers)
                 print "2: %s - %s" % (start, stop)
                 p.apply_async(dziecko, [i, req, dir_tmp])
                 #del req.headers["Range"]
@@ -46,13 +51,17 @@ def download1(url, file_size1, file_size2, data_block, N1, N2, dir_tmp):
                 print "3: %s - %s" % (start, stop)
                 #req = urllib2.Request(url, headers=headers)
                 #req.add_header("Range","bytes=" + str(start) + "-" + str(stop))
-                req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
+                #req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
+                headers["Range"]="bytes=" + str(start) + "-" + str(stop)
+                req = urllib2.Request(url, headers=headers)
                 p.apply_async(dziecko, [i, req, dir_tmp])
                 #del req.headers["Range"]
             else:
                 stop = file_size1
                 print "4: %s - %s" % (start, stop)
-                req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
+                headers["Range"]="bytes=" + str(start) + "-" + str(stop)
+                req = urllib2.Request(url, headers=headers)
+                #req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
                 #req = urllib2.Request(url, headers=headers)
                 #req.add_header("Range","bytes=" + str(start) + "-" + str(stop))
                 p.apply_async(dziecko, [i, req, dir_tmp])
@@ -74,7 +83,7 @@ def download2(url,dir_tmp):
     }
     req = urllib2.Request(url,headers=headers)
 
-    p.apply_async(dziecko, [0,req,dir_tmp,0])
+    p.apply_async(dziecko, [0,req,dir_tmp])
     return p
 
 def supervisor2(*args):
@@ -88,6 +97,7 @@ def supervisor2(*args):
     data_block1 = 0
     data_block2 = 0
     checkInt = 0
+    file_size=0
     f_name = url1.split("/")[len(url1.split("/")) - 1]
     dir_tmp = dir + "\\TMP." + f_name
     try:
@@ -96,9 +106,10 @@ def supervisor2(*args):
         pass
 
     data1 = urllib2.urlopen(url1)
-    data2 = urllib2.urlopen(url1)
+    data2 = urllib2.urlopen(url2)
     if data1.headers["Accept-Ranges"] == "bytes" and data2.headers["Accept-Ranges"] == "bytes":
         if data1.headers["Content-Length"] and data2.headers["Content-Length"] and data1.headers["Content-Length"] == data2.headers["Content-Length"]:
+            print "data1 = %s, data2 = %s" % (data1.headers["Content-Length"], data2.headers["Content-Length"])
             for n in range(0, N):
                 with open(dir_tmp + "\\file" + str(n), "w+b") as f:
                     pass
@@ -139,6 +150,7 @@ def supervisor2(*args):
     while True:
         QtCore.QCoreApplication.processEvents()
         sum = 0
+        print "N ======== %s, a checkint = %s" % (N, checkInt)
         for n in range(0, N):
             sum = sum + os.path.getsize(dir_tmp + "\\file" + str(n))
             #print "suma = %.2f, file_size = %.2f" % (sum, file_size)

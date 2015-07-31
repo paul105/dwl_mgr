@@ -13,7 +13,8 @@ def main(self):
 
 
 def dziecko(i, req, dir):               #funkcja dziecko, przekazujemy "id", "Request object", oraz katalog roboczy
-
+    a=0
+    if not req.has_header("Range"): a=1
     data = urllib2.urlopen(req)
     CHUNK = 1024*512                #ilosc danych czytana jednorazowo
     f_path = dir+"\\file"+str(i)
@@ -26,7 +27,11 @@ def dziecko(i, req, dir):               #funkcja dziecko, przekazujemy "id", "Re
             __time = time.time()-__time_start
             #print __time
             #print i, " czas: ", __time, " rozm: ", len(chunk)
-            if not chunk: break
+            if not chunk:
+                if a == 1:
+                    from main import del_and_combine
+                    del_and_combine(dir+"\\..", dir,str(dir).split(".",1)[1],1)
+                break
             output.write(chunk)
             CHUNK = int((CHUNK*0.3)+(len(chunk)/__time)*0.7)
 
