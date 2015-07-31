@@ -22,25 +22,48 @@ class MainWindow(QtGui.QMainWindow):
         self.cw = QtGui.QWidget(self)
         self.setWindowTitle("Pobieracz")
         self.setCentralWidget(self.cw)
-        self.btn1 = QtGui.QPushButton("New", self.cw)
+        self.btn1 = QtGui.QPushButton("Nowy", self.cw)
         self.btn1.setGeometry(QtCore.QRect(10, 10, 100, 60))
+
+        self.dele = QtGui.QPushButton("Usun", self.cw)
+        self.dele.setGeometry(QtCore.QRect(10, 130, 100, 60))
+
         self.connect(self.btn1, QtCore.SIGNAL("clicked()"), self.new_dl)
-        self.tabelka = QtGui.QTextEdit(self)
-        self.tabelka.setGeometry(QtCore.QRect(200, 100, 400, 400))
-        self.tabelka.setObjectName("tabelka")
-        self.tabelka.setText("Tutaj beda \nsie znajdowaly \ndane wszystkich \npobranych plikow")
+        self.tableDwn = QtGui.QTableWidget(self.cw)
+        self.tableDwn.setGeometry(QtCore.QRect(145, 130, 630, 400))
+        self.tableDwn.horizontalHeader().setVisible(False)
+        self.tableDwn.horizontalHeader().setStretchLastSection(True)
+        self.tableDwn.setObjectName("tableDownloads")
+        self.tableDwn.setColumnCount(3)
+        self.tableDwn.setRowCount(0)
+        setTableDwn(self.tableDwn)
+
+        self.connect(self.dele, QtCore.SIGNAL("clicked()"), self.deleRow)
+
+    def deleRow(self):
+        a = self.tableDwn.currentRow()
+        try:
+            with open("files","rb") as f:
+                x = f.readlines()
+                del x[a]
+                with open("files","wb") as ff:
+                    [ff.write(x[i]) for i in range(0, len(x))]
+            setTableDwn(self.tableDwn)
+        except:
+            pass
 
     def new_dl(self):
-        self.w = Ui_new_dl()
+        self.w = Ui_new_dl(self.tableDwn)
         self.w.setGeometry(QtCore.QRect(100, 100, 600, 400))
         self.w.show()
         return self.w
 
 ###okno do wprowadzenia danych
 class Ui_new_dl(QtGui.QMainWindow):
-    def __init__(self):
+    def __init__(self,table):
         QtGui.QMainWindow.__init__(self)
         #self.filename = ""
+        self.tableDwn = table
         self.dir = ""
         #self.n = 0
         #self.__url = ""
@@ -157,9 +180,8 @@ class Ui_new_dl(QtGui.QMainWindow):
         try:
             parts = int(self.parts.text())
         except:
+            #QtGui.QMessageBox.about(self,"Error!","Nie wybrano ilosci czesci lub liczba jest niepoprawna")
             parts = ""
-            parts = 3   ############################################################################################do usuniecia
-            #todo alert o braku czesci
         finally:
             return parts
 
@@ -175,8 +197,6 @@ class Ui_new_dl(QtGui.QMainWindow):
             return self.dir
 
     def check_url(self,url):
-        #print url
-        k = 1
         import urllib2
         try:
             urllib2.urlopen(url)
@@ -197,8 +217,7 @@ class Ui_new_dl(QtGui.QMainWindow):
                         urllib2.urlopen(url4)
                         return url4
                     except:
-                        #todo:
-                        #alert o zlym adresie url
+                        QtGui.QMessageBox.about(self,"Error!","Nie wpisano adresu lub adres jest niepoprawny (serwer docelowy nie odpowiada)")
                         return ""
 
     def download_decide(self):
@@ -212,19 +231,15 @@ class Ui_new_dl(QtGui.QMainWindow):
         n = self.get_parts()
         try:
             if self.dir=="":
-                #todo alert o braku wyboru katalogu
-                print "1"
-                pass
-            elif not isinstance(n,int):
-                #todo alert nie wpisano n, lub n jest niepoprawne
-                print "2"
-                pass
+                QtGui.QMessageBox.about(self,"Error!","Nie wybrano katalogu lub katalog nie istnieje")
+            elif not isinstance(n,int) or n <= 0:
+                QtGui.QMessageBox.about(self,"Error!","Nie wybrano ilosci czesci lub liczba jest niepoprawna")
             elif url1!="":
                 self.ww = UI_dl(n)
                 self.ww.setGeometry(QtCore.QRect(500,500,400,300))
                 self.ww.show()
                 from super import supervisor1
-                supervisor1(n, url1, self.dir, self.ww)
+                supervisor1(n, url1, self.dir, self.ww, self.tableDwn)
             else:
                 pass
         except:
@@ -238,19 +253,16 @@ class Ui_new_dl(QtGui.QMainWindow):
         n = self.get_parts()
         try:
             if self.dir=="":
-                #todo alert o braku wyboru katalogu
-                print "1"
-                pass
-            elif not isinstance(n,int):
-                #todo alert nie wpisano n, lub n jest niepoprawne
-                print "2"
-                pass
+                QtGui.QMessageBox.about(self,"Error!","Nie wybrano katalogu lub katalog nie istnieje")
+            elif not isinstance(n,int) or n <= 0 :
+                QtGui.QMessageBox.about(self,"Error!","Nie wybrano ilosci czesci lub liczba jest niepoprawna")
             elif url1!="" and url2!="":
                 self.ww = UI_dl(n)
                 self.ww.setGeometry(QtCore.QRect(500,500,400,300))
                 self.ww.show()
                 from super2 import supervisor2
-                supervisor2(n, url1, url2, val, self.dir, self.ww)
+                supervisor2(n, url1, url2, val, self.dir, self.ww, self.tableDwn)
+
             else:
                 pass
         except:
@@ -267,25 +279,41 @@ class UI_dl(QtGui.QMainWindow):
         self.end.setGeometry(QtCore.QRect(250,250,100,30))
         self.end.setEnabled(False)
         self.connect(self.end, QtCore.SIGNAL("clicked()"), self.close)
-        self.tableWidget = QtGui.QTableWidget(self.cw3)
-        self.tableWidget.setGeometry(QtCore.QRect(10, 10, 300, 200))
-        self.tableWidget.horizontalHeader().setVisible(False)
-        self.tableWidget.horizontalHeader().setStretchLastSection(True)
-        '''
-        self.tableWidget.horizontalHeader().setHighlightSections(True)
-        self.tableWidget.horizontalHeader().setMinimumSectionSize(30)
-        self.tableWidget.horizontalHeader().setSortIndicatorShown(True)
-
-        '''
-        self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(1)
-        self.tableWidget.setRowCount(n)
-
-        for i in range(0,n):
-            item = QtGui.QTableWidgetItem()
-            item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled)
-            self.tableWidget.setItem(i, 0, item)
+        self.tableParts = QtGui.QTableWidget(self.cw3)
+        self.tableParts.setGeometry(QtCore.QRect(10, 10, 300, 200))
+        self.tableParts.horizontalHeader().setVisible(False)
+        self.tableParts.horizontalHeader().setStretchLastSection(True)
+        self.tableParts.setObjectName("tableParts")
+        self.tableParts.setColumnCount(1)
 
 
 
+def setTableParts(table,n):
+    table.setRowCount(n)
+    for i in range(0,n):
+        item = QtGui.QTableWidgetItem()
+        item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
+        table.setItem(i, 0, item)
+
+def setTableDwn(table):
+    try:
+        with open("files","rb") as file:
+            x = file.readlines()
+            table.setRowCount(len(x))
+            for i in range(0,10):
+
+                import json
+                y = json.loads(x[i])
+
+                name = QtGui.QTableWidgetItem(y["name"])
+                name.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
+                date = QtGui.QTableWidgetItem(y["date"])
+                date.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
+                url = QtGui.QTableWidgetItem(str(y["url"]))
+                url.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
+                table.setItem(i, 0, name)
+                table.setItem(i, 1, date)
+                table.setItem(i, 2, url)
+    except:
+        pass
 

@@ -2,15 +2,16 @@ import os
 from PyQt4 import QtCore, QtGui
 import urllib2
 import multiprocessing as mp
-from main import dziecko, del_and_combine
+from main import dziecko, del_and_combine, fileLogSave
+from test2 import setTableParts, setTableDwn
 
 def download1(url, file_size1, file_size2, data_block, N1, N2, dir_tmp):
     headers = {
-    #    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0",
         "Accept-Encoding": "gzip, deflate, sdch",
-    #    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    #    "Accept-Language": "pl-PL,pl;q=0.8,en-US;q=0.6,en;q=0.4",
-    #    "Connection": "keep-alive",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "pl-PL,pl;q=0.8,en-US;q=0.6,en;q=0.4",
+        "Connection": "keep-alive",
     }
 
     N = N2-N1
@@ -23,50 +24,28 @@ def download1(url, file_size1, file_size2, data_block, N1, N2, dir_tmp):
                 stop = (i-N1)*data_block + data_block -1 + file_size1
                 headers["Range"]="bytes=" + str(start) + "-" + str(stop)
                 req = urllib2.Request(url, headers=headers)
-                #req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
-                #req.add_header("Range","bytes=" + str(start) + "-" + str(stop))
-
-                print "1: %s - %s" % (start, stop)
                 p.apply_async(dziecko, [i, req, dir_tmp])
-                #del req.headers["Range"]
             else:
                 stop = file_size2+file_size1
-                #req = urllib2.Request(url, headers=headers)
-                #req.add_header("Range","bytes=" + str(start) + "-" + str(stop))
-                #req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
                 headers["Range"]="bytes=" + str(start) + "-" + str(stop)
                 req = urllib2.Request(url, headers=headers)
-                print "2: %s - %s" % (start, stop)
                 p.apply_async(dziecko, [i, req, dir_tmp])
-                #del req.headers["Range"]
-            print "i = %s, %s - %s, %s" % ( i, start, stop, N)
 
     elif N1 == 0:
         for i in range(N1, N2):
-            # algorytm podzialu dla sciagania. W przypadku ostatniego watku musimy dopelnic zakres pobierania do wielkosci pliku
             start = i * data_block
             stop = 0
             if not i == N2 - 1:
                 stop = i * data_block + data_block - 1
-                print "3: %s - %s" % (start, stop)
-                #req = urllib2.Request(url, headers=headers)
-                #req.add_header("Range","bytes=" + str(start) + "-" + str(stop))
-                #req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
                 headers["Range"]="bytes=" + str(start) + "-" + str(stop)
                 req = urllib2.Request(url, headers=headers)
                 p.apply_async(dziecko, [i, req, dir_tmp])
-                #del req.headers["Range"]
             else:
                 stop = file_size1
                 print "4: %s - %s" % (start, stop)
                 headers["Range"]="bytes=" + str(start) + "-" + str(stop)
                 req = urllib2.Request(url, headers=headers)
-                #req = urllib2.Request(url, headers={"Range":"bytes=" + str(start) + "-" + str(stop)})
-                #req = urllib2.Request(url, headers=headers)
-                #req.add_header("Range","bytes=" + str(start) + "-" + str(stop))
                 p.apply_async(dziecko, [i, req, dir_tmp])
-                #del req.headers["Range"]
-            print "i = %s, %s - %s, %s" % ( i, start, stop, N)
 
     return p
 
@@ -82,7 +61,6 @@ def download2(url,dir_tmp):
         "Connection": "keep-alive",
     }
     req = urllib2.Request(url,headers=headers)
-
     p.apply_async(dziecko, [0,req,dir_tmp])
     return p
 
@@ -93,6 +71,7 @@ def supervisor2(*args):
     val = (args[3] * 0.01)
     dir = args[4]
     ww = args[5]
+    tableDwn = args[6]
     data_block = 0
     data_block1 = 0
     data_block2 = 0
@@ -113,6 +92,8 @@ def supervisor2(*args):
             for n in range(0, N):
                 with open(dir_tmp + "\\file" + str(n), "w+b") as f:
                     pass
+            setTableParts(ww.tableParts, N)
+
             file_size = round(float((data1.headers["Content-Length"].strip())))  # odnajdujemy w naglowku linijke "Content-Length", a nastepnie zapisujemy informacje o wielkosci pliku
             file_size1 = file_size*val
             file_size2 = file_size-file_size1
@@ -137,6 +118,7 @@ def supervisor2(*args):
             N = 1
             data_block1 = data_block2 = data_block
             checkInt=0
+            setTableParts(ww.tableParts, N)
             p = download2(url1, dir_tmp)
 
     else:
@@ -145,53 +127,51 @@ def supervisor2(*args):
         N = 1
         data_block1 = data_block2 = data_block
         checkInt=0
+        setTableParts(ww.tableParts, N)
         p = download2(url1, dir_tmp)
 
     while True:
         QtCore.QCoreApplication.processEvents()
         sum = 0
-        print "N ======== %s, a checkint = %s" % (N, checkInt)
         for n in range(0, N):
             sum = sum + os.path.getsize(dir_tmp + "\\file" + str(n))
-            #print "suma = %.2f, file_size = %.2f" % (sum, file_size)
         if not sum < file_size:
             try:
                 p.close()
                 p.join()
             except:
-                try:
-                    p1.close()
-                    p2.close()
-                    p1.join()
-                    p2.join()
-                except:
-                    pass
+                p1.close()
+                p2.close()
+                p1.join()
+                p2.join()
 
             ww.end.setEnabled(True)
             for n in range(0,checkInt):
                 s = float(os.path.getsize(dir_tmp + "\\file" + str(n)))
                 item = QtGui.QTableWidgetItem("%.2f/%.2f (100.00%%)" % (data_block1/(1024**2), data_block1/(1024**2)))
                 item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
-                ww.tableWidget.setItem(n,0,item)
+                ww.tableParts.setItem(n,0,item)
             for n in range(checkInt,N):
                 s = float(os.path.getsize(dir_tmp + "\\file" + str(n)))
                 item = QtGui.QTableWidgetItem("%.2f/%.2f (100.00%%)" % (data_block2/(1024**2), data_block2/(1024**2)))
                 item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
-                ww.tableWidget.setItem(n,0,item)
+                ww.tableParts.setItem(n,0,item)
             print "N = %s" % (N)
             del_and_combine(dir, dir_tmp, f_name, N)
+            fileLogSave(f_name, url1)
+            setTableDwn(tableDwn)
             break
 
         for n in range(0,checkInt):
             s = float(os.path.getsize(dir_tmp + "\\file" + str(n)))
             item = QtGui.QTableWidgetItem("%.2f/%.2f (%2.2f%%)" % (s/(1024**2), float(data_block1/(1024**2)), ((s*100)/data_block1)))
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
-            ww.tableWidget.setItem(n,0,item)
+            ww.tableParts.setItem(n,0,item)
 
         for n in range(checkInt,N):
             s = float(os.path.getsize(dir_tmp + "\\file" + str(n)))
             item = QtGui.QTableWidgetItem("%.2f/%.2f (%2.2f%%)" % (s/(1024**2), float(data_block2/(1024**2)), ((s*100)/data_block2)))
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsEnabled)
-            ww.tableWidget.setItem(n,0,item)
+            ww.tableParts.setItem(n,0,item)
 
 
